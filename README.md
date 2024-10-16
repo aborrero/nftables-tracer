@@ -37,3 +37,6 @@ By default it uses `meta nfproto ipv6`, meaning it will show traces for all IPv6
 
 Hopefully, this single file, self contained script will not have many python dependencies, so it should be fairly
 easy to wget/curl and just run it when you need it.
+
+See also:
+ * https://github.com/aojea/nftrace

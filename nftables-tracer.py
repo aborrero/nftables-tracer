@@ -91,7 +91,7 @@ def colorize(line):
         colored_trace_id_line = ret.replace(match.group(0), colored_trace_id)
         ret = colored_trace_id_line
 
-    match = re.search(r"(\(verdict \S+)$", ret)
+    match = re.search(r"(verdict \S+)$", ret)
     if match:
         colored_verdict = f"{verdict_color(match.group(0))}{match.group(0)}{RESET}"
         ret = ret.replace(match.group(0), colored_verdict)

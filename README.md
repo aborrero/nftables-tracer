@@ -1,6 +1,10 @@
 # nftables-tracer
 helper tool to trace packets traversing nftables rulesets
 
+Basically:
+ * automate all the steps in https://wiki.nftables.org/wiki-nftables/index.php/Ruleset_debug/tracing
+ * add some colors to the output
+
 ![Screenshot](https://raw.githubusercontent.com/aborrero/nftables-tracer/main/screenshot.png)
 
 Examples:

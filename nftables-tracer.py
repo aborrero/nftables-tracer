@@ -4,11 +4,13 @@
 import argparse
 import subprocess
 import sys
-import signal
 import re
 import os
 
+from contextlib import contextmanager
 from functools import lru_cache
+from typing import Any
+
 
 FAMILY = "inet"
 TABLE_NAME = "nftables-tracer"
@@ -38,19 +40,13 @@ def run(command):
         sys.exit(1)
 
 
-def create_nftables_table_chain_rule(rule_str):
+@contextmanager
+def nftables_tracer_table_and_chain(rule_str: str) -> Any:
     run(f"nft add table {FAMILY} {TABLE_NAME}")
     run(f"nft add chain {FAMILY} {TABLE_NAME} {CHAIN_NAME} {CHAIN_DEFINITION}")
     run(f"nft add rule {FAMILY} {TABLE_NAME} {CHAIN_NAME} {rule_str} {TRACE} counter")
-
-
-def remove_nftables_table_chain():
+    yield
     run(f"nft delete table {FAMILY} {TABLE_NAME}")
-
-
-def signal_handler(sig, frame):
-    remove_nftables_table_chain()
-    sys.exit(0)
 
 
 TRACE_COLORS = [
@@ -147,7 +143,7 @@ def monitor(show_all: bool, no_colors: bool) -> None:
             else:
                 print(colorize(line))
     except KeyboardInterrupt:
-        print("Process interrupted.")
+        print()
     finally:
         process.stdout.close()
         process.wait()
@@ -183,14 +179,8 @@ def main():
 
     rule_string = args.nftables_rule_match
 
-    signal.signal(signal.SIGINT, signal_handler)
-    signal.signal(signal.SIGTERM, signal_handler)
-
-    create_nftables_table_chain_rule(rule_string)
-    monitor(args.all, args.no_colors)
-
-    print("Press Ctrl+C to exit and clean up the nftables table and chain.")
-    signal.pause()
+    with nftables_tracer_table_and_chain(rule_string):
+        monitor(args.all, args.no_colors)
 
 
 if __name__ == "__main__":

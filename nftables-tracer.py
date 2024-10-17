@@ -29,8 +29,6 @@ CYAN = "\033[36m"
 WHITE = "\033[37m"
 RESET = "\033[0m"
 
-NEXT_COLOR = BLUE
-
 
 def run(command):
     """Runs an nft command."""

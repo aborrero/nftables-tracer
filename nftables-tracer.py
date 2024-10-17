@@ -62,17 +62,17 @@ TRACE_COLORS = [
 
 TRACE_COLORS_LEN = len(TRACE_COLORS)
 
-idx = 0
+trace_id_color_idx = 0
 
 
 @lru_cache(maxsize=TRACE_COLORS_LEN * 2)
 def get_trace_id_color(trace_id):
-    global idx
+    global trace_id_color_idx
 
-    color = TRACE_COLORS[idx]
-    idx = idx + 1
-    if idx == TRACE_COLORS_LEN:
-        idx = 0
+    color = TRACE_COLORS[trace_id_color_idx]
+    trace_id_color_idx = trace_id_color_idx + 1
+    if trace_id_color_idx == TRACE_COLORS_LEN:
+        trace_id_color_idx = 0
 
     return color
 

@@ -80,33 +80,32 @@ def verdict_color(verdict: str):
 
 
 def colorize(line):
-    ret = line
-
-    match = re.match(r"^trace id \S+ \S+ \S+ \S+ packet:", ret)
+    match = re.match(r"^trace id \S+ \S+ \S+ \S+ packet:", line)
     if match:
         colored_packet = f"{YELLOW}packet:{RESET}"
-        ret = ret.replace("packet:", colored_packet)
+        line = line.replace("packet:", colored_packet)
 
-    match = re.search(r"^(trace id) (\S+)", ret)
+    match = re.search(r"^(trace id) (\S+)", line)
     if match:
         trace_id = match.group(2)
         color = get_trace_id_color(trace_id)
 
-        colored_trace_id = f"{color}{match.group(1)} {trace_id}{RESET}"
-        colored_trace_id_line = ret.replace(match.group(0), colored_trace_id)
-        ret = colored_trace_id_line
+        colored_trace_id = f"{color}{match.group(0)}{RESET}"
+        line = line.replace(match.group(0), colored_trace_id)
 
-    match = re.search(r"(verdict \S+)$", ret)
+    match = re.search(r"(\(?verdict \S+)$", line)
     if match:
-        colored_verdict = f"{verdict_color(match.group(0))}{match.group(0)}{RESET}"
-        ret = ret.replace(match.group(0), colored_verdict)
+        color = verdict_color(match.group(0))
+        colored_verdict = f"{color}{match.group(0)}{RESET}"
+        line = line.replace(match.group(0), colored_verdict)
 
-    match = re.search(r"(policy \S+)$", ret)
+    match = re.search(r"(policy \S+)$", line)
     if match:
-        colored_verdict = f"{verdict_color(match.group(0))}{match.group(0)}{RESET}"
-        ret = ret.replace(match.group(0), colored_verdict)
+        color = verdict_color(match.group(0))
+        colored_verdict = f"{color}{match.group(0)}{RESET}"
+        line = line.replace(match.group(0), colored_verdict)
 
-    return ret
+    return line
 
 
 def is_own_trace(line: str) -> bool:

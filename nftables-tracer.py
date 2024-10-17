@@ -169,7 +169,7 @@ def main():
         type=str,
         help="nftables rule match to filter trace events",
         nargs="?",
-        default="meta nfproto ipv6",
+        default="meta nfproto ipv4",
     )
     args = parser.parse_args()
 

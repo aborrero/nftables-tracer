@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import argparse
+import signal
 import subprocess
 import sys
 import re
@@ -45,8 +46,14 @@ def nftables_tracer_table_and_chain(rule_str: str) -> Any:
     run(f"nft add table {FAMILY} {TABLE_NAME}")
     run(f"nft add chain {FAMILY} {TABLE_NAME} {CHAIN_NAME} {CHAIN_DEFINITION}")
     run(f"nft add rule {FAMILY} {TABLE_NAME} {CHAIN_NAME} {rule_str} {TRACE} counter")
-    yield
-    run(f"nft delete table {FAMILY} {TABLE_NAME}")
+
+    def cleanup():
+        run(f"nft delete table {FAMILY} {TABLE_NAME}")
+
+    try:
+        yield
+    finally:
+        cleanup()
 
 
 TRACE_COLORS = [
@@ -141,8 +148,6 @@ def monitor(show_all: bool, no_colors: bool) -> None:
                 print(line)
             else:
                 print(colorize(line))
-    except KeyboardInterrupt:
-        print()
     finally:
         process.stdout.close()
         process.wait()
@@ -177,6 +182,12 @@ def main():
         sys.exit(2)
 
     rule_string = args.nftables_rule_match
+
+    def signal_handler(sig, frame):
+        sys.exit(0)
+
+    signal.signal(signal.SIGINT, signal_handler)
+    signal.signal(signal.SIGTERM, signal_handler)
 
     with nftables_tracer_table_and_chain(rule_string):
         monitor(args.all, args.no_colors)

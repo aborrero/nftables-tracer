@@ -8,6 +8,8 @@ import signal
 import re
 import os
 
+from functools import lru_cache
+
 FAMILY = "inet"
 TABLE_NAME = "nftables-tracer"
 CHAIN_NAME = "nftables-tracer"
@@ -58,14 +60,21 @@ TRACE_COLORS = [
     WHITE,
 ]
 
-trace_id_colors: dict = {}
+TRACE_COLORS_LEN = len(TRACE_COLORS)
+
+idx = 0
 
 
+@lru_cache(maxsize=TRACE_COLORS_LEN * 2)
 def get_trace_id_color(trace_id):
-    if trace_id not in trace_id_colors:
-        color = TRACE_COLORS[len(trace_id_colors) % len(TRACE_COLORS)]
-        trace_id_colors[trace_id] = color
-    return trace_id_colors[trace_id]
+    global idx
+
+    color = TRACE_COLORS[idx]
+    idx = idx + 1
+    if idx == TRACE_COLORS_LEN:
+        idx = 0
+
+    return color
 
 
 def verdict_color(verdict: str):

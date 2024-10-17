@@ -120,9 +120,21 @@ def is_own_trace(line: str) -> bool:
 
 
 def monitor(show_all: bool, no_colors: bool) -> None:
-    process = subprocess.Popen(
-        MONITOR, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, shell=True
-    )
+    try:
+        process = subprocess.Popen(
+            MONITOR,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            shell=True,
+        )
+    except subprocess.CalledProcessError as e:
+        print(f"ERROR: {e}")
+        return
+
+    if not process.stdout:
+        print(f"ERROR: proccess for '{MONITOR}' yielded nothing in stdout")
+        return
 
     try:
         for line in process.stdout:

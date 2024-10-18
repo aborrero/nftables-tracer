@@ -15,8 +15,10 @@ from typing import Any
 
 FAMILY = "inet"
 TABLE_NAME = "nftables-tracer"
-CHAIN_NAME = "nftables-tracer"
-CHAIN_DEFINITION = "{ type filter hook prerouting priority raw - 1 \\; }"
+PREROUTING_CHAIN_NAME = "nftables-tracer-prerouting"
+PREROUTING_CHAIN_DEFINITION = "{ type filter hook prerouting priority raw - 1 \\; }"
+OUTPUT_CHAIN_NAME = "nftables-tracer-output"
+OUTPUT_CHAIN_DEFINITION = "{ type filter hook output priority raw - 1 \\; }"
 TRACE = "nftrace set 1"
 MONITOR = "nft monitor trace"
 
@@ -39,10 +41,24 @@ def run(command: str) -> None:
 
 
 @contextmanager
-def nftables_tracer_table_and_chain(rule_str: str) -> Any:
+def nftables_tracer_table_and_chain(
+    rule_str: str, prerouting_hook: bool, output_hook: bool
+) -> Any:
     run(f"nft add table {FAMILY} {TABLE_NAME}")
-    run(f"nft add chain {FAMILY} {TABLE_NAME} {CHAIN_NAME} {CHAIN_DEFINITION}")
-    run(f"nft add rule {FAMILY} {TABLE_NAME} {CHAIN_NAME} {rule_str} {TRACE} counter")
+    if prerouting_hook:
+        run(
+            f"nft add chain {FAMILY} {TABLE_NAME} {PREROUTING_CHAIN_NAME} {PREROUTING_CHAIN_DEFINITION}"
+        )
+        run(
+            f"nft add rule {FAMILY} {TABLE_NAME} {PREROUTING_CHAIN_NAME} {rule_str} {TRACE} counter"
+        )
+    if output_hook:
+        run(
+            f"nft add chain {FAMILY} {TABLE_NAME} {OUTPUT_CHAIN_NAME} {OUTPUT_CHAIN_DEFINITION}"
+        )
+        run(
+            f"nft add rule {FAMILY} {TABLE_NAME} {OUTPUT_CHAIN_NAME} {rule_str} {TRACE} counter"
+        )
 
     try:
         yield
@@ -109,7 +125,10 @@ def colorize(line: str) -> str:
 
 
 def is_own_trace(line: str) -> bool:
-    if re.match(rf"^trace id \S+ {FAMILY} {TABLE_NAME} {CHAIN_NAME}", line):
+    if re.match(
+        rf"^trace id \S+ {FAMILY} {TABLE_NAME} ({PREROUTING_CHAIN_NAME}|{OUTPUT_CHAIN_NAME})",
+        line,
+    ):
         return True
     return False
 
@@ -168,6 +187,21 @@ def main() -> None:
         nargs="?",
         default="",
     )
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument(
+        "-p",
+        "--prerouting",
+        action="store_true",
+        help="only trace from prerouting hook",
+        default=False,
+    )
+    group.add_argument(
+        "-o",
+        "--output",
+        action="store_true",
+        help="only trace from output hook",
+        default=False,
+    )
     args = parser.parse_args()
 
     if os.geteuid() != 0:
@@ -180,7 +214,11 @@ def main() -> None:
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
 
-    with nftables_tracer_table_and_chain(args.nftables_rule_match):
+    with nftables_tracer_table_and_chain(
+        rule_str=args.nftables_rule_match,
+        prerouting_hook=not args.output,
+        output_hook=not args.prerouting,
+    ):
         monitor(args.all, args.no_colors)
 
 

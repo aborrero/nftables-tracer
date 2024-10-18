@@ -14,6 +14,7 @@ $ sudo ./nftables-tracer.py "ip protocol icmp"
 $ sudo ./nftables-tracer.py "meta nfproto udp"
 $ sudo ./nftables-tracer.py "tcp dport 22"
 $ sudo ./nftables-tracer.py "ip saddr 8.8.8.8 udp sport 53"
+$ sudo ./nftables-tracer.py "meta nfproto ipv4"
 $ sudo ./nftables-tracer.py "meta nfproto ipv6"
 ```
 
@@ -34,7 +35,7 @@ options:
   -c, --no-colors      disable colors
 ```
 
-By default it uses `meta nfproto ipv4`, meaning it will show traces for all IPv4 traffic.
+By default it uses no match, meaning it will show traces for all traffic.
 
 Hopefully, this single file, self contained script will not have many python dependencies, so it should be fairly
 easy to wget/curl and just run it when you need it.

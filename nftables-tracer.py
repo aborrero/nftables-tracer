@@ -44,13 +44,10 @@ def nftables_tracer_table_and_chain(rule_str: str) -> Any:
     run(f"nft add chain {FAMILY} {TABLE_NAME} {CHAIN_NAME} {CHAIN_DEFINITION}")
     run(f"nft add rule {FAMILY} {TABLE_NAME} {CHAIN_NAME} {rule_str} {TRACE} counter")
 
-    def cleanup():
-        run(f"nft delete table {FAMILY} {TABLE_NAME}")
-
     try:
         yield
     finally:
-        cleanup()
+        run(f"nft delete table {FAMILY} {TABLE_NAME}")
 
 
 TRACE_COLORS = [
@@ -77,7 +74,7 @@ def get_trace_id_color(trace_id: str) -> str:
     return color
 
 
-def verdict_color(verdict: str) -> str:
+def get_verdict_color(verdict: str) -> str:
     if "accept" in verdict or "continue" in verdict:
         return GREEN
     return RED
@@ -93,19 +90,18 @@ def colorize(line: str) -> str:
     if match:
         trace_id = match.group(2)
         color = get_trace_id_color(trace_id)
-
         colored_trace_id = f"{color}{match.group(0)}{RESET}"
         line = line.replace(match.group(0), colored_trace_id)
 
     match = re.search(r"(\(?verdict \S+)$", line)
     if match:
-        color = verdict_color(match.group(0))
+        color = get_verdict_color(match.group(0))
         colored_verdict = f"{color}{match.group(0)}{RESET}"
         line = line.replace(match.group(0), colored_verdict)
 
     match = re.search(r"(policy \S+)$", line)
     if match:
-        color = verdict_color(match.group(0))
+        color = get_verdict_color(match.group(0))
         colored_verdict = f"{color}{match.group(0)}{RESET}"
         line = line.replace(match.group(0), colored_verdict)
 
@@ -178,15 +174,13 @@ def main() -> None:
         print(f"ERROR: {sys.argv[0]}: root required")
         sys.exit(2)
 
-    rule_string = args.nftables_rule_match
-
     def signal_handler(sig, frame):
         sys.exit(0)
 
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
 
-    with nftables_tracer_table_and_chain(rule_string):
+    with nftables_tracer_table_and_chain(args.nftables_rule_match):
         monitor(args.all, args.no_colors)
 
 

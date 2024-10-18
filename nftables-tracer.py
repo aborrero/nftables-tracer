@@ -30,8 +30,7 @@ WHITE = "\033[37m"
 RESET = "\033[0m"
 
 
-def run(command):
-    """Runs an nft command."""
+def run(command: str) -> None:
     try:
         subprocess.run(command, shell=True, check=True)
     except subprocess.CalledProcessError as e:
@@ -67,7 +66,7 @@ trace_id_color_idx = 0
 
 
 @lru_cache(maxsize=TRACE_COLORS_LEN * 2)
-def get_trace_id_color(trace_id):
+def get_trace_id_color(trace_id: str) -> str:
     global trace_id_color_idx
 
     color = TRACE_COLORS[trace_id_color_idx]
@@ -78,13 +77,13 @@ def get_trace_id_color(trace_id):
     return color
 
 
-def verdict_color(verdict: str):
+def verdict_color(verdict: str) -> str:
     if "accept" in verdict or "continue" in verdict:
         return GREEN
     return RED
 
 
-def colorize(line):
+def colorize(line: str) -> str:
     match = re.match(r"^trace id \S+ \S+ \S+ \S+ packet:", line)
     if match:
         colored_packet = f"{YELLOW}packet:{RESET}"
@@ -151,7 +150,7 @@ def monitor(show_all: bool, no_colors: bool) -> None:
         process.wait()
 
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(
         description="a helper tool to trace nftables rulesets"
     )

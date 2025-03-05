@@ -57,7 +57,14 @@ options:
 By default it uses no match, meaning it will show traces for all traffic.
 
 Hopefully, this single file, self contained script will not have many python dependencies, so it should be fairly
-easy to wget/curl and just run it when you need it.
+easy to wget/curl and just run it when you need it. Example:
+
+```
+$ wget https://raw.githubusercontent.com/aborrero/nftables-tracer/refs/heads/main/nftables-tracer.py
+$ chmod a+x nftables-tracer.py
+$ sudo ./nftables-tracer.py
+```
+NOTE: downloading a random script from the internet, and then running as root is very dangerous!
 
 See also:
  * https://github.com/aojea/nftrace
